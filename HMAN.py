@@ -30,14 +30,14 @@ HANGMAN_PICS = ['''
         |
        ===''', '''
     +---+
-   😱   |
+   😱  |
    /|\  |
    /    |
        ===''', '''
     +---+
-    💀  |
-   /|\  |
-   / \  |
+   💀  │
+   /|\  │
+   / \  │
        ===''']
 
 
@@ -46,6 +46,7 @@ DATA = urllib.request.urlopen(TARGET_URL)
 words=[]
 for line in DATA:
      words.append(str(line).replace('b\'',"").replace('\\r\\n\'',""))
+running = True     
 
 class gameBoard:
     def __init__(self,word):
@@ -53,39 +54,47 @@ class gameBoard:
         self.word=word.lower()
         self.completed=False
         self.guesses= []
+        self.placeholders="_"
+
     def drawBoard(self):
-        placeholders="\t"
+        self.placeholders="\t"
         for letter in board.word:
             if letter.lower() in board.guesses:
-                placeholders = "{} {}".format(placeholders,letter)
+                self.placeholders = "{} {}".format(self.placeholders,letter)
             else:
-                placeholders = "{} {}".format(placeholders,"_")
-        if "_" not in placeholders:
-            board.completed = True
-        print (HANGMAN_PICS[board.wrong],placeholders, "\nGuesses:",*board.guesses)
+                self.placeholders = "{} {}".format(self.placeholders,"_")
+         
+        print (HANGMAN_PICS[board.wrong],self.placeholders, "\nGuesses:",*board.guesses)
     
 
 board=gameBoard(random.choice(words))
  
-running = True
+
 
 while running:
- board.drawBoard()
- guess=input ("Select a letter: ")[0]
- if guess not in board.guesses :
-    board.guesses.append(guess.lower())
-    if guess not in board.word:
-        board.wrong +=1
- else:
-    print ("Already Guessed") 
-board.drawBoard() 
+   
+    board.drawBoard()
+    if (board.wrong >= len(HANGMAN_PICS)-1  ):
+        print (f'Word was {board.word}')
+        input ("You lose: Press any key to restart")
+        board=gameBoard(random.choice(words)) 
+        continue
+    if "_" not in board.placeholders:
+        input ("You won: Press any key to restart")
+        board=gameBoard(random.choice(words)) 
+        continue
+   
+    guess=input ("Select a letter: ").lower()
+    if not guess :
+        continue
+    if guess[0] not in board.guesses and guess.isalpha():
+        board.guesses.append(guess[0])
+        if guess not in board.word:
+            board.wrong +=1
+    else:
+        print ("Already Guessed or not a letter") 
+     
 
-if (board.wrong == 6  ):
-    input ("You lose: Press any key to restart")
-if board.completed:
-    input ("You won: Press any key to restart")
-board=gameBoard(random.choice(words)) 
-board.drawBoard()
 
  
 
